@@ -1,3 +1,41 @@
+const PDF_VIEWER_ID = "mhjfbmdgcfjbbpaeojofohoefgiehjai";
+const PDF_VIEWER_PREFIX = `chrome-extension://${PDF_VIEWER_ID}/`;
+
+function isPdfTabUrl(url) {
+  if (!url) {
+    return false;
+  }
+  if (url.startsWith(PDF_VIEWER_PREFIX)) {
+    return true;
+  }
+  if (url.startsWith("file://") && url.toLowerCase().includes(".pdf")) {
+    return true;
+  }
+  return /\.pdf(?:$|[?#])/i.test(url);
+}
+
+async function injectIntoPdfTab(tabId) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId, allFrames: true },
+      files: ["content/content.js"],
+    });
+    await chrome.scripting.insertCSS({
+      target: { tabId, allFrames: true },
+      files: ["content/content.css"],
+    });
+  } catch {
+    // Tab may not be injectable yet, or content_scripts already ran.
+  }
+}
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status !== "complete" || !isPdfTabUrl(tab.url)) {
+    return;
+  }
+  injectIntoPdfTab(tabId);
+});
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type !== "lookup") {
     return false;

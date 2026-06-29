@@ -1,6 +1,11 @@
 (function () {
   "use strict";
 
+  if (window.__wordMeaningHoverLoaded) {
+    return;
+  }
+  window.__wordMeaningHoverLoaded = true;
+
   const DEBOUNCE_MS = 1000;
   const CACHE_TTL_MS = 30000;
   const API_URL = "https://api.dictionaryapi.dev/api/v2/entries/en/";
@@ -18,10 +23,14 @@
     if (tooltip) {
       return tooltip;
     }
+    const root = document.body || document.documentElement;
+    if (!root) {
+      return null;
+    }
     tooltip = document.createElement("div");
     tooltip.id = "word-meaning-tooltip";
     tooltip.setAttribute("role", "tooltip");
-    document.body.appendChild(tooltip);
+    root.appendChild(tooltip);
     return tooltip;
   }
 
@@ -41,12 +50,12 @@
     }
   }
 
-  function getRangeAtPoint(x, y) {
-    if (document.caretRangeFromPoint) {
-      return document.caretRangeFromPoint(x, y);
+  function getRangeAtPointInRoot(root, x, y) {
+    if (root.caretRangeFromPoint) {
+      return root.caretRangeFromPoint(x, y);
     }
-    if (document.caretPositionFromPoint) {
-      const position = document.caretPositionFromPoint(x, y);
+    if (root.caretPositionFromPoint) {
+      const position = root.caretPositionFromPoint(x, y);
       if (!position) {
         return null;
       }
@@ -58,20 +67,34 @@
     return null;
   }
 
-  function stripWord(word) {
-    return word.replace(/^['-]+|['-]+$/g, "");
-  }
+  function collectElementsAtPoint(x, y) {
+    const elements = [];
+    const seen = new Set();
+    const roots = [document];
 
-  function getWordAtPoint(x, y) {
-    const range = getRangeAtPoint(x, y);
-    if (!range || range.startContainer.nodeType !== Node.TEXT_NODE) {
-      return null;
+    while (roots.length > 0) {
+      const root = roots.pop();
+      const stack = [root];
+
+      while (stack.length > 0) {
+        const current = stack.pop();
+        const el = current.elementFromPoint(x, y);
+        if (!el || seen.has(el)) {
+          continue;
+        }
+        seen.add(el);
+        elements.push(el);
+        if (el.shadowRoot) {
+          roots.push(el.shadowRoot);
+        }
+      }
     }
 
-    const text = range.startContainer.textContent;
-    const offset = range.startOffset;
-    let match;
+    return elements;
+  }
 
+  function wordFromTextNode(text, offset) {
+    let match;
     WORD_REGEX.lastIndex = 0;
     while ((match = WORD_REGEX.exec(text)) !== null) {
       const start = match.index;
@@ -82,6 +105,64 @@
           return null;
         }
         return word.toLowerCase();
+      }
+    }
+    return null;
+  }
+
+  function wordFromElementText(text) {
+    const trimmed = text.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const direct = stripWord(trimmed);
+    if (/^[a-zA-Z'-]+$/.test(direct) && direct.length >= 2) {
+      return direct.toLowerCase();
+    }
+
+    WORD_REGEX.lastIndex = 0;
+    const match = WORD_REGEX.exec(trimmed);
+    if (!match) {
+      return null;
+    }
+    const word = stripWord(match[0]);
+    return word.length >= 2 ? word.toLowerCase() : null;
+  }
+
+  function stripWord(word) {
+    return word.replace(/^['-]+|['-]+$/g, "");
+  }
+
+  function getWordAtPoint(x, y) {
+    const roots = [document];
+    const visitedRoots = new Set();
+
+    while (roots.length > 0) {
+      const root = roots.pop();
+      if (visitedRoots.has(root)) {
+        continue;
+      }
+      visitedRoots.add(root);
+
+      const range = getRangeAtPointInRoot(root, x, y);
+      if (range?.startContainer.nodeType === Node.TEXT_NODE) {
+        const word = wordFromTextNode(range.startContainer.textContent, range.startOffset);
+        if (word) {
+          return word;
+        }
+      }
+
+      const el = root.elementFromPoint?.(x, y);
+      if (el?.shadowRoot) {
+        roots.push(el.shadowRoot);
+      }
+    }
+
+    for (const el of collectElementsAtPoint(x, y)) {
+      const word = wordFromElementText(el.textContent || "");
+      if (word) {
+        return word;
       }
     }
 

@@ -12,7 +12,7 @@ A Chrome extension that shows dictionary definitions when you hold **Alt** (Opti
 
 ## How to use
 
-1. Browse any normal website (e.g. Wikipedia, news sites, blogs)
+1. Browse any normal website (e.g. Wikipedia, news sites, blogs) **or open a local PDF in Chrome**
 2. Hold **Alt** (Option on Mac) and hover over an English word
 3. Wait about 1 second — a tooltip appears with:
    - The word
@@ -27,9 +27,25 @@ A Chrome extension that shows dictionary definitions when you hold **Alt** (Opti
 - Definitions are fetched from the [Free Dictionary API](https://dictionaryapi.dev/) (no API key required)
 - Lookups are cached in memory for 30 seconds to avoid duplicate requests
 
+## Local PDF files (`file://`)
+
+Chrome opens PDFs in its built-in viewer, not as a normal HTML page. For local PDFs to work:
+
+1. Go to `chrome://extensions`
+2. Find **Word Meaning on Hover** → click **Details**
+3. Turn on **Allow access to file URLs**
+4. Click **Reload** on the extension (after updating the code)
+5. Open your PDF in Chrome (drag the file into a tab, or use **File → Open**)
+
+Example: a book PDF at `file:///Users/you/Documents/book.pdf` — hold **Alt** and hover over words in the text layer.
+
+If it still does not work, close the PDF tab and reopen it after enabling file access.
+
 ## Known limitations
 
 - Does **not** work on `chrome://` pages, the Chrome Web Store, or other restricted Chrome internal pages
+- Local PDFs require **Allow access to file URLs** (see above)
+- Scanned/image-only PDFs have no selectable text — the extension needs a text layer to detect words
 - Requires holding **Alt** and hovering for ~1 second before a lookup starts (debounce)
 - Non-English words may return "No definition found"
 - Very fast mouse movement across many words may feel sluggish due to debouncing

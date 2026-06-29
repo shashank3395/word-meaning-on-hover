@@ -2,10 +2,12 @@
   "manifest_version": 3,
   "name": "Word Meaning on Hover",
   "description": "Hold Alt and hover over words to see definitions on any webpage",
-  "version": "1.0.0",
-  "permissions": ["activeTab"],
+  "version": "1.1.0",
+  "permissions": ["activeTab", "scripting", "tabs"],
   "host_permissions": [
-    "https://api.dictionaryapi.dev/*"
+    "https://api.dictionaryapi.dev/*",
+    "file:///*",
+    "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js"
@@ -15,7 +17,27 @@
       "matches": ["<all_urls>"],
       "js": ["content/content.js"],
       "css": ["content/content.css"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "file:///*",
+        "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/*"
+      ],
+      "js": ["content/content.js"],
+      "css": ["content/content.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content/content.js", "content/content.css"],
+      "matches": [
+        "file:///*",
+        "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/*"
+      ]
     }
   ],
   "action": {

@@ -36,6 +36,7 @@ Chrome opens PDFs in its built-in viewer, not as a normal HTML page. For local P
 3. Turn on **Allow access to file URLs**
 4. Click **Reload** on the extension (after updating the code)
 5. Open your PDF in Chrome (drag the file into a tab, or use **File → Open**)
+6. If Alt+hover does not work, **click the extension icon once** on that PDF tab (Chrome blocks automatic injection into its PDF viewer; the click grants access via `activeTab`)
 
 Example: a book PDF at `file:///Users/you/Documents/book.pdf` — hold **Alt** and hover over words in the text layer.
 

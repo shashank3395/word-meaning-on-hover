@@ -2,46 +2,26 @@
   "manifest_version": 3,
   "name": "Word Meaning on Hover",
   "description": "Hold Alt and hover over words to see definitions on any webpage",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "permissions": ["activeTab", "scripting", "tabs"],
   "host_permissions": [
     "https://api.dictionaryapi.dev/*",
-    "file:///*",
-    "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/*"
+    "file:///*"
   ],
   "background": {
     "service_worker": "background/service-worker.js"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["<all_urls>", "file:///*"],
       "js": ["content/content.js"],
       "css": ["content/content.css"],
       "run_at": "document_idle",
       "all_frames": true
-    },
-    {
-      "matches": [
-        "file:///*",
-        "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/*"
-      ],
-      "js": ["content/content.js"],
-      "css": ["content/content.css"],
-      "run_at": "document_idle",
-      "all_frames": true
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["content/content.js", "content/content.css"],
-      "matches": [
-        "file:///*",
-        "chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/*"
-      ]
     }
   ],
   "action": {
-    "default_title": "Word Meaning on Hover",
+    "default_title": "Word Meaning on Hover — click once on a PDF if Alt+hover does not work",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

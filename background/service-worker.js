@@ -29,8 +29,19 @@ async function injectIntoPdfTab(tabId) {
   }
 }
 
+// activeTab lets us inject into Chrome's PDF viewer when the user clicks the icon.
+chrome.action.onClicked.addListener((tab) => {
+  if (!tab?.id || !isPdfTabUrl(tab.url)) {
+    return;
+  }
+  injectIntoPdfTab(tab.id);
+});
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status !== "complete" || !isPdfTabUrl(tab.url)) {
+  if (changeInfo.status !== "complete" || !tab.url?.startsWith("file://")) {
+    return;
+  }
+  if (!tab.url.toLowerCase().includes(".pdf")) {
     return;
   }
   injectIntoPdfTab(tabId);
